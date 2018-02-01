@@ -14,11 +14,12 @@
     "ssh_username": "vagrant",
     "ssh_password": "vagrant",
     "ssh_portnumber": "22",
-    "preseed_path": "ubuntu_preseed.cfg"
+    "preseed_path": "ubuntu_preseed.cfg",
+    "virtual_machine_name": "ubuntu_16_04_amd64"
   },
   "builders": [{
     "type": "virtualbox-iso",
-    "boot_wait": "{{user `boot_wait`}}",
+    "boot_wait": "{{ user `boot_wait` }}",
     "boot_command": [
        "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
@@ -46,41 +47,63 @@
        "<enter><wait>"
       ],
     "communicator": "ssh", 
-    "disk_size": "{{user `disk_size`}}",
+    "disk_size": "{{ user `disk_size` }}",
     "guest_os_type": "Ubuntu_64",
-    "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
-    "headless": "{{user `headless`}}",
+    "guest_additions_path": "VBoxGuestAdditions_{{ .Version }}.iso",
+    "headless": "{{ user `headless` }}",
     "http_directory": "http",
-    "iso_url": "{{user `mirror`}}/16.04/ubuntu-16.04.3-server-amd64.iso",
-    "iso_checksum_url": "{{user `iso_checksum_url`}}",
-    "iso_checksum_type": "{{user `iso_checksum_type`}}",
-    "output_directory": "packer-ubuntu-16.04-amd64-{{build_type}}",
-    "ssh_username": "{{user `ssh_username`}}",
-    "ssh_password": "{{user `ssh_password`}}",
-    "ssh_timeout": "{{user `ssh_timeout`}}",
-    "ssh_port": "{{user `ssh_portnumber`}}",
+    "iso_url": "{{ user `mirror` }}/16.04/ubuntu-16.04.3-server-amd64.iso",
+    "iso_checksum_url": "{{ user `iso_checksum_url` }}",
+    "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+    "output_directory": "packer-ubuntu-16.04-amd64-{{ build_type }}",
+    "ssh_username": "{{ user `ssh_username` }}",
+    "ssh_password": "{{ user `ssh_password` }}",
+    "ssh_timeout": "{{ user `ssh_timeout` }}",
+    "ssh_port": "{{ user `ssh_portnumber` }}",
     "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
     "vboxmanage": [
        [
          "modifyvm",
-         "{{.Name}}",
+         "{{ .Name }}",
          "--memory",
          "1024"
        ],
        [
          "modifyvm",
-         "{{.Name}}",
+         "{{ .Name }}",
          "--cpus",
          "1"
        ]
      ],
     "virtualbox_version_file": ".vbox_version",
-    "vm_name": "packer-ubuntu-16.04-amd64"
+    "vm_name": "{{ user `virtual_machine_name` }}"
   }],
+  "provisioners":[
+     {
+        "type": "shell",	  
+        "inline": ["sudo apt-get update && sleep 1 && sudo apt-get -yyq install python python-apt aptitude curl && sleep 1 && curl https://omnitruck.chef.io/install.sh | sudo bash -s -- -P inspec"]
+     },
+     {
+        "type": "file",
+        "source": "../inspec/profiles/packer_test_profile",
+        "destination": "/tmp/inspec/"
+     },
+     { 
+        "type": "shell",
+        "inline":"inspec detect && sleep  1 && inspec exec /tmp/inspec/"
+     }			
+  ],
 
-  "post-processors": [{
-    "type": "vagrant",
-    "compression_level": "{{user `compression_level`}}",
-    "output": "ubuntu-16.04-amd64-{{.Provider}}.box"
-  }]
+  "post-processors": [
+     {
+       "type": "vagrant",
+       "compression_level": "{{ user `compression_level` }}",
+       "output": "packer_{{ user `virtual_machine_name` }}_{{ .BuildName }}_{{ .Provider }}.box"
+     },
+     {
+       "type": "checksum",
+       "checksum_types": "sha256",
+       "output": "packer_{{ user `virtual_machine_name` }}_{{ .BuildName }}_{{ .ChecksumType }}.checksum"     
+     }
+  ]
 }
