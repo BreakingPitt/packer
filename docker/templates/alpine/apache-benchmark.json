@@ -1,0 +1,42 @@
+{
+  "description": "Creates a Ubuntu 17.10 (Artful) amd64 based Docker image with JQ app.",
+
+  "variables": {
+    "repository_name": "breakingpitt",
+    "image_name": "jq_alpine",
+    "image_tag": "0.1",
+    "jq_version": "1.5"
+    
+  },
+
+  "builders":[{
+     "type": "docker",
+     "image": "alpine:3.7",
+     "run_command": [ "-d", "-t", "-i", "{{.Image}}", "/bin/ash" ], 
+     "commit": "true",
+     "changes": [
+       "USER www-data",
+       "LABEL maintainer='Pedro Garcia Rodriguez <pedgarrod@gmail.com>'",
+       "ENTRYPOINT ab"
+  ]    
+  }],
+
+  "provisioners":[
+     {
+       "type": "shell",
+       "inline_shebang": "/bin/ash -e",
+       "inline": ["apk update",
+	          "apk add --update ca-certificates apache2-utils apache2-ssl",
+		  "rm -rf /var/cache/apk/*"
+                  ]
+     }
+  ],
+
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "{{user `repository_name` }}/{{user `image_name`}}",
+      "tag": "{{user `image_tag`}}"
+    }
+  ]
+}
