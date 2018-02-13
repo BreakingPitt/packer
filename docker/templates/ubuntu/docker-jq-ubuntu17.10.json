@@ -10,9 +10,7 @@
      "image": "ubuntu:17.10",
      "commit": "true",
      "changes": [
-       "USER www-data",
        "LABEL maintainer='Pedro Garcia Rodriguez <pedgarrod@gmail.com>'",
-       "LABEL org.label-schema.vcs-ref=$VCS_REF org.label-schema.vcs-url='https://github.com/breakingpitt/dockerfiles'",
        "ENV DEBIAN_FRONTEND noninteractive",
        "ENTRYPOINT jq",
        "CMD [ \"--help\" ]"
@@ -21,7 +19,10 @@
   "provisioners":[
      {
        "type": "shell",
-       "inline": ["apt-get -y update; apt-get install -y --no-install-recommends jq; apt-get clean; rm -rf /var/lib/apt/lists/*"]
+       "inline": ["apt-get -y update",
+                  "apt-get install -y --no-install-recommends jq",
+                  "apt-get clean",
+                  "rm -rf /var/lib/apt/lists/*"]
      }
   ],
   "post-processors": [
