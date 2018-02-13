@@ -1,0 +1,42 @@
+{
+  "description": "Creates a Alpine 3.7 amd64 based Docker image with JQ app.",
+
+  "variables": {
+    "repository_name": "breakingpitt",
+    "image_name": "jq_alpine",
+    "image_tag": "0.1",
+    "jq_version": "1.5"
+  },
+
+  "builders":[{
+     "type": "docker",
+     "image": "alpine:3.7",
+     "run_command": [ "-d", "-t", "-i", "{{.Image}}", "/bin/ash" ],
+     "commit": "true",
+     "changes": [
+       "LABEL maintainer='Pedro Garcia Rodriguez <pedgarrod@gmail.com>'",
+       "ENTRYPOINT /usr/local/bin/jq"
+  ]
+  }],
+
+  "provisioners":[
+     {
+       "type": "shell",
+       "inline_shebang": "/bin/ash -e",
+       "inline": [ "apk update",
+                   "apk add --update ca-certificates curl",
+                   "rm -rf /var/cache/apk/*",
+                   "curl -o /usr/local/bin/jq -L https://github.com/stedolan/jq/releases/download/jq-{{user `jq_version`}}/jq-linux64",
+                   "chmod 755 /usr/local/bin/jq"
+                  ]
+     }
+  ],
+
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "{{user `repository_name` }}/{{user `image_name`}}",
+      "tag": "{{user `image_tag`}}"
+    }
+  ]
+}
