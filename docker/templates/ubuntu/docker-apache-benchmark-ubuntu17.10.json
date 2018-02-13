@@ -1,0 +1,36 @@
+{
+  "description": "Creates a Ubuntu 17.10 (Artful) amd64 based Docker image with JQ app.",
+  "variables": {
+    "repository_name": "breakingpitt",
+    "image_name": "apache_benchmark_ubuntu",
+    "image_tag": "0.1"
+  },
+  "builders":[{
+     "type": "docker",
+     "image": "ubuntu:17.10",
+     "commit": "true",
+     "changes": [
+       "USER www-data",
+       "LABEL maintainer='Pedro Garcia Rodriguez <pedgarrod@gmail.com>'",
+       "ENV DEBIAN_FRONTEND noninteractive",
+       "ENTRYPOINT ab",
+       "CMD [ \"--help\" ]"
+  ]
+  }],
+  "provisioners":[
+     {
+       "type": "shell",
+       "inline": ["apt-get -y update",
+                  "apt-get install -y --no-install-recommends apache2-utils",
+                  "apt-get clean",
+                  "rm -rf /var/lib/apt/lists/*"]
+     }
+  ],
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "{{user `repository_name` }}/{{user `image_name`}}",
+      "tag": "{{user `image_tag`}}"
+    }
+  ]
+}
