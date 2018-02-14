@@ -1,5 +1,5 @@
 {
-  "description": "Creates a Ubuntu 17.10 (Artful) amd64 based Docker image with JQ app.",
+  "description": "Creates a Alpine 3.7 amd64 based Docker image with JQ app.",
 
   "variables": {
     "repository_name": "breakingpitt",
