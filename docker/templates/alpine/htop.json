@@ -1,0 +1,38 @@
+{
+  "description": "Creates a Alpine 3.7 amd64 based Docker image with htop app.",
+
+  "variables": {
+    "repository_name": "breakingpitt",
+    "image_name": "htop_alpine",
+    "image_tag": "0.1"
+  },
+
+  "builders":[{
+     "type": "docker",
+     "image": "alpine:3.7",
+     "run_command": [ "-d", "-t", "-i", "{{.Image}}", "/bin/ash" ], 
+     "commit": "true",
+     "changes": [
+       "LABEL maintainer='Pedro Garcia Rodriguez <pedgarrod@gmail.com>'",
+       "ENTRYPOINT htop",
+       "CMD [\"--help\"]"
+     ]    
+   }],
+
+  "provisioners":[
+     {
+       "type": "shell",
+       "inline_shebang": "/bin/ash -e",
+       "inline": ["apk update",
+                  "apk add --update htop",
+                  "rm -rf /var/cache/apk/*"
+       ]
+     }],
+
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "{{user `repository_name` }}/{{user `image_name`}}",
+      "tag": "{{user `image_tag`}}"
+    }]
+}
